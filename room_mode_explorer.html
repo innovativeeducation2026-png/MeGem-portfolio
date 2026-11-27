@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Room & Cabin Mode Explorer | MeGem Track A Acoustics</title>
+  <style>
+    :root {
+      --bg-primary: #0b0f17;
+      --bg-panel: #131a27;
+      --bg-card: #1a2333;
+      --border: #2a374f;
+      --text-main: #e6edf7;
+      --text-muted: #8b9bb4;
+      --accent-cyan: #00e5ff;
+      --accent-amber: #ffab00;
+      --accent-red: #ff3d71;
+      --accent-green: #00e676;
+      --accent-purple: #b388ff;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      padding: 16px;
+    }
+
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.1);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    button {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    button:hover {
+      border-color: var(--accent-cyan);
+      background: #212d42;
+    }
+
+    button.primary {
+      background: rgba(0, 229, 255, 0.15);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    button.primary:hover {
+      background: rgba(0, 229, 255, 0.25);
+    }
+
+    button.danger {
+      background: rgba(255, 61, 113, 0.15);
+      border-color: var(--accent-red);
+      color: var(--accent-red);
+    }
+
+    button.active-filter {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.18);
+      color: var(--accent-cyan);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .panel-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+    }
+
+    .mono-val {
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent-cyan);
+      cursor: pointer;
+    }
+
+    .canvas-wrapper {
+      position: relative;
+      background: #080b11;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    canvas {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .legend-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      gap: 10px;
+    }
+
+    .gradient-scale {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .gradient-box {
+      width: 120px;
+      height: 10px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #0d1b2a 0%, #0077b6 35%, #ffab00 70%, #ff3d71 100%);
+    }
+
+    .telemetry-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .stat-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .stat-value {
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .filter-bar button {
+      padding: 5px 10px;
+      font-size: 0.78rem;
+    }
+
+    .modes-table-wrap {
+      max-height: 250px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-card);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #101724;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    tr.mode-row {
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+
+    tr.mode-row:hover {
+      background: #222f46;
+    }
+
+    tr.mode-row.active-mode {
+      background: rgba(255, 171, 0, 0.15);
+      color: var(--accent-amber);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .tag-axial {
+      background: rgba(0, 229, 255, 0.14);
+      color: var(--accent-cyan);
+    }
+
+    .tag-tangential {
+      background: rgba(255, 171, 0, 0.14);
+      color: var(--accent-amber);
+    }
+
+    .tag-oblique {
+      background: rgba(179, 136, 255, 0.16);
+      color: var(--accent-purple);
+    }
+
+    .audio-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .export-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .export-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .export-status {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--accent-green);
+    }
+
+    textarea.report-preview {
+      width: 100%;
+      min-height: 120px;
+      background: #090d16;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      resize: vertical;
+    }
+
+    details.readme-box {
+      margin-top: 20px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+
+    details.readme-box summary {
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--accent-cyan);
+      font-size: 0.95rem;
+    }
+
+    .readme-content {
+      margin-top: 14px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 768px) {
+      .readme-content, .telemetry-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .readme-content h3 {
+      color: var(--text-main);
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+    }
+
+    .readme-content code {
+      font-family: var(--font-mono);
+      background: var(--bg-card);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--accent-amber);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <span class="badge">MeGem Track A • Acoustics &amp; Wave Physics</span>
+        <h1>Room &amp; Cabin Mode Explorer</h1>
+        <p class="subtitle">Axial, tangential &amp; oblique modes, 2D pressure map, Web Audio sweep &amp; mode report export</p>
+      </div>
+      <div class="presets">
+        <button onclick="applyPreset(2.4, 1.45, 1.15)">Car Cabin (Hatch)</button>
+        <button onclick="applyPreset(3.2, 1.75, 1.65)">Transit / Van Cabin</button>
+        <button onclick="applyPreset(3.8, 3.1, 2.4)">Small Studio</button>
+        <button onclick="applyPreset(5.4, 4.2, 2.6)">Living Room</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-title">Enclosure Dimensions (c = 343 m/s)</div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span>Length (L) — Front to Rear</span>
+            <span class="mono-val" id="val-L">3.80 m</span>
+          </div>
+          <input type="range" id="slider-L" min="1.2" max="9.0" step="0.05" value="3.80" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span>Width (W) — Left to Right</span>
+            <span class="mono-val" id="val-W">3.10 m</span>
+          </div>
+          <input type="range" id="slider-W" min="1.0" max="7.5" step="0.05" value="3.10" />
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span>Height (H) — Floor to Ceiling</span>
+            <span class="mono-val" id="val-H">2.40 m</span>
+          </div>
+          <input type="range" id="slider-H" min="0.9" max="4.5" step="0.05" value="2.40" />
+        </div>
+
+        <div class="panel-title">Excitation Frequency &amp; Audio</div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span>Drive Frequency (f)</span>
+            <span class="mono-val" id="val-F">45.1 Hz</span>
+          </div>
+          <input type="range" id="slider-F" min="20" max="250" step="0.5" value="45.1" />
+        </div>
+
+        <div class="audio-controls">
+          <button id="btn-tone" class="primary" onclick="toggleTone()">Play Steady Tone</button>
+          <button id="btn-sweep" onclick="triggerSweep()">20–200 Hz Sweep (8s)</button>
+          <button id="btn-stop" class="danger" onclick="stopAudio()">Stop</button>
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span>Output Gain (Safe Sub Level)</span>
+            <span class="mono-val" id="val-G">25%</span>
+          </div>
+          <input type="range" id="slider-G" min="0" max="0.6" step="0.02" value="0.25" />
+        </div>
+
+        <div class="panel-title">Quick Mode Summary Export</div>
+        <div class="export-box">
+          <div class="export-actions">
+            <button class="primary" onclick="copyReport()">Copy Summary</button>
+            <button onclick="downloadReport()">Download .TXT</button>
+            <span class="export-status" id="export-status"></span>
+          </div>
+          <textarea id="report-preview" class="report-preview" readonly aria-label="Mode summary text report"></textarea>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Top-Down Acoustic Pressure Heat Map (Drag Sub &amp; Seat)</div>
+
+        <div class="canvas-wrapper">
+          <canvas id="roomCanvas" width="680" height="380"></canvas>
+          <div class="legend-bar">
+            <span>Drag <strong>SUB</strong> (source) or <strong>SEAT</strong> (listener) inside enclosure</span>
+            <div class="gradient-scale">
+              <span>Null (0%)</span>
+              <div class="gradient-box"></div>
+              <span>Antinode Peak (100%)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="telemetry-strip">
+          <div class="stat-box">
+            <div class="stat-label">Predicted Pressure at Seat</div>
+            <div class="stat-value" id="stat-pressure" style="color: var(--accent-amber);">-- %</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Source Coupling Efficiency</div>
+            <div class="stat-value" id="stat-coupling" style="color: var(--accent-cyan);">-- %</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Wavelength (&lambda; = c / f)</div>
+            <div class="stat-value" id="stat-wavelength">-- m</div>
+          </div>
+        </div>
+
+        <div class="panel-title">
+          <span>Calculated Room Modes — Click Any Row to Tune</span>
+          <div class="filter-bar">
+            <button id="filter-all" class="active-filter" onclick="setFilter('all')">All</button>
+            <button id="filter-axial" onclick="setFilter('axial')">Axial</button>
+            <button id="filter-tangential" onclick="setFilter('tangential')">Tangential</button>
+            <button id="filter-oblique" onclick="setFilter('oblique')">Oblique</button>
+          </div>
+        </div>
+
+        <div class="modes-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Order (nx,ny,nz)</th>
+                <th>Type</th>
+                <th>Frequency</th>
+                <th>Wavelength</th>
+              </tr>
+            </thead>
+            <tbody id="modes-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <details class="readme-box">
+      <summary>README: Physics Model, Formulas &amp; Real-World Caveats</summary>
+      <div class="readme-content">
+        <div>
+          <h3>1. 3D Eigenmode Equations</h3>
+          <p>
+            Rectangular enclosures support three classes of standing waves calculated via:
+            <code>f = (c / 2) &middot; &radic;((nx/L)&sup2; + (ny/W)&sup2; + (nz/H)&sup2;)</code> where <code>c = 343 m/s</code>.
+          </p>
+          <p style="margin-top: 8px;">
+            <strong>Axial</strong> modes bounce between two parallel faces (one non-zero index), <strong>tangential</strong> modes involve four faces (two non-zero indices, ~3 dB stronger energy than oblique), and <strong>oblique</strong> modes involve all six surfaces (three non-zero indices).
+          </p>
+        </div>
+        <div>
+          <h3>2. Practical Tuning &amp; Real-World Caveats</h3>
+          <p>
+            <strong>What it shows:</strong> How axial, tangential, and oblique resonances cluster in low frequencies and how moving <code>SUB</code> and <code>SEAT</code> alters pressure peaks vs. nulls.
+          </p>
+          <p style="margin-top: 8px;">
+            <strong>Real-world caveats:</strong> Assumes rigid, lossless walls. Real car cabins add sheet-metal flex, glass, seats, and cabin transfer gain; rooms add wall compliance, damping, and absorption.
+          </p>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <script>
+    const SPEED_OF_SOUND = 343.0;
+
+    const state = {
+      L: 3.80,
+      W: 3.10,
+      H: 2.40,
+      freq: 45.1,
+      gain: 0.25,
+      modeFilter: 'all',
+      sub: { x: 0.12, y: 0.15 },
+      seat: { x: 0.65, y: 0.50 },
+      dragging: null
+    };
+
+    const sliderL = document.getElementById('slider-L');
+    const sliderW = document.getElementById('slider-W');
+    const sliderH = document.getElementById('slider-H');
+    const sliderF = document.getElementById('slider-F');
+    const sliderG = document.getElementById('slider-G');
+
+    const valL = document.getElementById('val-L');
+    const valW = document.getElementById('val-W');
+    const valH = document.getElementById('val-H');
+    const valF = document.getElementById('val-F');
+    const valG = document.getElementById('val-G');
+
+    const canvas = document.getElementById('roomCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let audioCtx = null;
+    let oscNode = null;
+    let gainNode = null;
+    let isPlaying = false;
+    let sweepAnimId = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function stopAudio() {
+      if (sweepAnimId) {
+        cancelAnimationFrame(sweepAnimId);
+        sweepAnimId = null;
+      }
+      if (oscNode) {
+        try {
+          oscNode.stop();
+          oscNode.disconnect();
+        } catch (e) {}
+        oscNode = null;
+      }
+      isPlaying = false;
+      document.getElementById('btn-tone').textContent = 'Play Steady Tone';
+    }
+
+    function toggleTone() {
+      if (isPlaying) {
+        stopAudio();
+        return;
+      }
+      initAudio();
+      stopAudio();
+
+      oscNode = audioCtx.createOscillator();
+      gainNode = audioCtx.createGain();
+
+      oscNode.type = 'sine';
+      oscNode.frequency.setValueAtTime(state.freq, audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(state.gain, audioCtx.currentTime);
+
+      oscNode.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscNode.start();
+
+      isPlaying = true;
+      document.getElementById('btn-tone').textContent = 'Pause Tone';
+    }
+
+    function triggerSweep() {
+      initAudio();
+      stopAudio();
+
+      oscNode = audioCtx.createOscillator();
+      gainNode = audioCtx.createGain();
+
+      const startFreq = 20;
+      const endFreq = 200;
+      const duration = 8.0;
+      const now = audioCtx.currentTime;
+
+      oscNode.type = 'sine';
+      oscNode.frequency.setValueAtTime(startFreq, now);
+      oscNode.frequency.exponentialRampToValueAtTime(endFreq, now + duration);
+
+      gainNode.gain.setValueAtTime(state.gain, now);
+      oscNode.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscNode.start(now);
+      oscNode.stop(now + duration);
+
+      isPlaying = true;
+      document.getElementById('btn-tone').textContent = 'Sweeping...';
+
+      const startTime = performance.now();
+      function updateSweepUI(ts) {
+        const elapsed = (ts - startTime) / 1000;
+        if (elapsed >= duration || !isPlaying) {
+          stopAudio();
+          return;
+        }
+        const currentF = startFreq * Math.pow(endFreq / startFreq, elapsed / duration);
+        state.freq = Math.round(currentF * 10) / 10;
+        sliderF.value = state.freq;
+        updateSimulation();
+        sweepAnimId = requestAnimationFrame(updateSweepUI);
+      }
+      sweepAnimId = requestAnimationFrame(updateSweepUI);
+    }
+
+    function applyPreset(L, W, H) {
+      state.L = L;
+      state.W = W;
+      state.H = H;
+      sliderL.value = L;
+      sliderW.value = W;
+      sliderH.value = H;
+      state.freq = Math.round((SPEED_OF_SOUND / (2 * L)) * 10) / 10;
+      sliderF.value = state.freq;
+      if (oscNode && isPlaying) {
+        oscNode.frequency.setValueAtTime(state.freq, audioCtx.currentTime);
+      }
+      updateSimulation();
+    }
+
+    function setFrequency(f) {
+      state.freq = Math.max(20, Math.min(250, Math.round(f * 10) / 10));
+      sliderF.value = state.freq;
+      if (oscNode && isPlaying) {
+        oscNode.frequency.setValueAtTime(state.freq, audioCtx.currentTime);
+      }
+      updateSimulation();
+    }
+
+    function setFilter(filterName) {
+      state.modeFilter = filterName;
+      ['all', 'axial', 'tangential', 'oblique'].forEach(name => {
+        document.getElementById(`filter-${name}`).classList.toggle('active-filter', name === filterName);
+      });
+      renderModesTable();
+    }
+
+    function computeAllModes() {
+      const modes = [];
+      for (let nx = 0; nx <= 3; nx++) {
+        for (let ny = 0; ny <= 3; ny++) {
+          for (let nz = 0; nz <= 3; nz++) {
+            const nonZeroCount = (nx > 0 ? 1 : 0) + (ny > 0 ? 1 : 0) + (nz > 0 ? 1 : 0);
+            if (nonZeroCount === 0) continue;
+
+            const freq = (SPEED_OF_SOUND / 2) * Math.sqrt(
+              Math.pow(nx / state.L, 2) +
+              Math.pow(ny / state.W, 2) +
+              Math.pow(nz / state.H, 2)
+            );
+
+            let type = 'oblique';
+            let label = 'Oblique';
+            let weight = 0.5;
+            if (nonZeroCount === 1) {
+              type = 'axial';
+              label = 'Axial';
+              weight = 1.0;
+            } else if (nonZeroCount === 2) {
+              type = 'tangential';
+              label = 'Tangential';
+              weight = 0.72;
+            }
+
+            modes.push({
+              nx, ny, nz,
+              orderText: `(${nx},${ny},${nz})`,
+              type,
+              label,
+              weight,
+              freq,
+              wavelength: SPEED_OF_SOUND / freq
+            });
+          }
+        }
+      }
+      modes.sort((a, b) => a.freq - b.freq);
+      return modes;
+    }
+
+    function evaluateField(nx, ny, subX, subY) {
+      const f = state.freq;
+      const damping = 0.08;
+      let totalResponse = 0;
+      let maxPossible = 0;
+      const modes = computeAllModes();
+
+      for (let i = 0; i < modes.length; i++) {
+        const m = modes[i];
+        if (m.freq > 320) break;
+
+        const detune = (f - m.freq) / (m.freq * damping + 2.5);
+        const resonance = m.weight / (1 + detune * detune);
+
+        const sourceCoupling = Math.abs(
+          Math.cos(m.nx * Math.PI * subX) *
+          Math.cos(m.ny * Math.PI * subY) *
+          Math.cos(m.nz * Math.PI * 0.5)
+        );
+        const receiverPressure = Math.abs(
+          Math.cos(m.nx * Math.PI * nx) *
+          Math.cos(m.ny * Math.PI * ny) *
+          Math.cos(m.nz * Math.PI * 0.5)
+        );
+
+        totalResponse += resonance * sourceCoupling * receiverPressure;
+        maxPossible += resonance;
+      }
+
+      const dist = Math.hypot((nx - subX) * state.L, (ny - subY) * state.W);
+      const directField = 0.18 / (1 + dist * 1.4);
+      const modalNorm = maxPossible > 0 ? Math.min(1, totalResponse / (maxPossible * 0.42)) : 0;
+
+      return Math.min(1, modalNorm * 0.88 + directField);
+    }
+
+    function colorRamp(t) {
+      t = Math.max(0, Math.min(1, t));
+      let r, g, b;
+      if (t < 0.35) {
+        const u = t / 0.35;
+        r = Math.round(13 + u * (0 - 13));
+        g = Math.round(27 + u * (119 - 27));
+        b = Math.round(42 + u * (182 - 42));
+      } else if (t < 0.72) {
+        const u = (t - 0.35) / 0.37;
+        r = Math.round(0 + u * 255);
+        g = Math.round(119 + u * (171 - 119));
+        b = Math.round(182 + u * (0 - 182));
+      } else {
+        const u = (t - 0.72) / 0.28;
+        r = 255;
+        g = Math.round(171 + u * (61 - 171));
+        b = Math.round(0 + u * 113);
+      }
+      return [r, g, b];
+    }
+
+    function getRoomRect() {
+      const pad = 28;
+      const maxW = canvas.width - pad * 2;
+      const maxH = canvas.height - pad * 2;
+      const aspect = state.L / state.W;
+
+      let drawW, drawH;
+      if (maxW / maxH > aspect) {
+        drawH = maxH;
+        drawW = drawH * aspect;
+      } else {
+        drawW = maxW;
+        drawH = drawW / aspect;
+      }
+      const x = (canvas.width - drawW) / 2;
+      const y = (canvas.height - drawH) / 2;
+      return { x, y, w: drawW, h: drawH };
+    }
+
+    function renderHeatMap() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const rect = getRoomRect();
+
+      const cols = 68;
+      const rows = 44;
+      const cellW = rect.w / cols;
+      const cellH = rect.h / rows;
+
+      for (let i = 0; i < cols; i++) {
+        const nx = (i + 0.5) / cols;
+        for (let j = 0; j < rows; j++) {
+          const ny = (j + 0.5) / rows;
+          const p = evaluateField(nx, ny, state.sub.x, state.sub.y);
+          const [r, g, b] = colorRamp(p);
+          ctx.fillStyle = `rgb(${r},${g},${b})`;
+          ctx.fillRect(
+            rect.x + i * cellW,
+            rect.y + j * cellH,
+            Math.ceil(cellW),
+            Math.ceil(cellH)
+          );
+        }
+      }
+
+      ctx.strokeStyle = '#00e5ff';
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+
+      ctx.fillStyle = '#8b9bb4';
+      ctx.font = '12px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`Length (L) = ${state.L.toFixed(2)} m`, rect.x + rect.w / 2, rect.y - 8);
+
+      ctx.save();
+      ctx.translate(rect.x - 10, rect.y + rect.h / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(`Width (W) = ${state.W.toFixed(2)} m`, 0, 0);
+      ctx.restore();
+
+      const subPx = rect.x + state.sub.x * rect.w;
+      const subPy = rect.y + state.sub.y * rect.h;
+      ctx.beginPath();
+      ctx.arc(subPx, subPy, 13, 0, Math.PI * 2);
+      ctx.fillStyle = '#0b0f17';
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = '#00e5ff';
+      ctx.stroke();
+
+      ctx.fillStyle = '#00e5ff';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('SUB', subPx, subPy);
+
+      const seatPx = rect.x + state.seat.x * rect.w;
+      const seatPy = rect.y + state.seat.y * rect.h;
+      ctx.beginPath();
+      ctx.arc(seatPx, seatPy, 14, 0, Math.PI * 2);
+      ctx.fillStyle = '#0b0f17';
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = '#00e676';
+      ctx.stroke();
+
+      ctx.fillStyle = '#00e676';
+      ctx.fillText('SEAT', seatPx, seatPy);
+    }
+
+    function renderModesTable() {
+      const tbody = document.getElementById('modes-tbody');
+      const allModes = computeAllModes();
+      const filtered = state.modeFilter === 'all'
+        ? allModes
+        : allModes.filter(m => m.type === state.modeFilter);
+
+      const topModes = filtered.slice(0, 24);
+
+      tbody.innerHTML = topModes.map(m => {
+        const isMatch = Math.abs(m.freq - state.freq) < 1.8;
+        const tagClass = `tag tag-${m.type}`;
+        return `
+          <tr class="mode-row ${isMatch ? 'active-mode' : ''}" onclick="setFrequency(${m.freq.toFixed(1)})">
+            <td>${m.orderText}</td>
+            <td><span class="${tagClass}">${m.label}</span></td>
+            <td>${m.freq.toFixed(1)} Hz</td>
+            <td>${m.wavelength.toFixed(2)} m</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function buildSummaryReport() {
+      const seatPressure = Math.round(evaluateField(state.seat.x, state.seat.y, state.sub.x, state.sub.y) * 100);
+      const subCoupling = Math.round(evaluateField(state.sub.x, state.sub.y, state.sub.x, state.sub.y) * 100);
+      const wavelength = (SPEED_OF_SOUND / state.freq).toFixed(2);
+      const subMeters = `${(state.sub.x * state.L).toFixed(2)}m, ${(state.sub.y * state.W).toFixed(2)}m`;
+      const seatMeters = `${(state.seat.x * state.L).toFixed(2)}m, ${(state.seat.y * state.W).toFixed(2)}m`;
+
+      const modes = computeAllModes().slice(0, 12);
+      const modeLines = modes.map(
+        (m, idx) => `${String(idx + 1).padStart(2, '0')}. ${m.orderText} [${m.label.padEnd(10, ' ')}] ${m.freq.toFixed(1)} Hz (${m.wavelength.toFixed(2)} m)`
+      );
+
+      return [
+        '=== MEGEM ROOM & CABIN MODE SUMMARY ===',
+        `Dimensions (L x W x H): ${state.L.toFixed(2)} m x ${state.W.toFixed(2)} m x ${state.H.toFixed(2)} m (c = 343 m/s)`,
+        `Drive Frequency: ${state.freq.toFixed(1)} Hz | Wavelength: ${wavelength} m`,
+        `SUB Position: (${subMeters}) | SEAT Position: (${seatMeters})`,
+        `Seat Pressure: ${seatPressure}% | Source Coupling: ${subCoupling}%`,
+        '---------------------------------------',
+        'Lowest 12 Calculated Modes (Axial / Tangential / Oblique):',
+        ...modeLines,
+        '---------------------------------------',
+        'Note: Ideal rigid-wall model; real cabins/rooms add flex, absorption & cabin transfer effects.'
+      ].join('\n');
+    }
+
+    function updateReportPreview() {
+      document.getElementById('report-preview').value = buildSummaryReport();
+    }
+
+    function copyReport() {
+      const text = buildSummaryReport();
+      const statusEl = document.getElementById('export-status');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          statusEl.textContent = 'Copied!';
+          setTimeout(() => { statusEl.textContent = ''; }, 2000);
+        }).catch(() => {
+          fallbackCopy(text, statusEl);
+        });
+      } else {
+        fallbackCopy(text, statusEl);
+      }
+    }
+
+    function fallbackCopy(text, statusEl) {
+      const ta = document.getElementById('report-preview');
+      ta.select();
+      try {
+        document.execCommand('copy');
+        statusEl.textContent = 'Copied!';
+      } catch (e) {
+        statusEl.textContent = 'Select text to copy';
+      }
+      setTimeout(() => { statusEl.textContent = ''; }, 2000);
+    }
+
+    function downloadReport() {
+      const text = buildSummaryReport();
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `room_modes_${state.L.toFixed(1)}x${state.W.toFixed(1)}x${state.H.toFixed(1)}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      const statusEl = document.getElementById('export-status');
+      statusEl.textContent = 'Downloaded .TXT';
+      setTimeout(() => { statusEl.textContent = ''; }, 2000);
+    }
+
+    function updateSimulation() {
+      valL.textContent = `${state.L.toFixed(2)} m`;
+      valW.textContent = `${state.W.toFixed(2)} m`;
+      valH.textContent = `${state.H.toFixed(2)} m`;
+      valF.textContent = `${state.freq.toFixed(1)} Hz`;
+      valG.textContent = `${Math.round((state.gain / 0.6) * 100)}%`;
+
+      const seatPressure = evaluateField(state.seat.x, state.seat.y, state.sub.x, state.sub.y);
+      const subCoupling = evaluateField(state.sub.x, state.sub.y, state.sub.x, state.sub.y);
+      const wavelength = SPEED_OF_SOUND / state.freq;
+
+      document.getElementById('stat-pressure').textContent = `${Math.round(seatPressure * 100)}%`;
+      document.getElementById('stat-coupling').textContent = `${Math.round(subCoupling * 100)}%`;
+      document.getElementById('stat-wavelength').textContent = `${wavelength.toFixed(2)} m`;
+
+      renderModesTable();
+      renderHeatMap();
+      updateReportPreview();
+    }
+
+    sliderL.addEventListener('input', e => { state.L = parseFloat(e.target.value); updateSimulation(); });
+    sliderW.addEventListener('input', e => { state.W = parseFloat(e.target.value); updateSimulation(); });
+    sliderH.addEventListener('input', e => { state.H = parseFloat(e.target.value); updateSimulation(); });
+    sliderF.addEventListener('input', e => {
+      state.freq = parseFloat(e.target.value);
+      if (oscNode && isPlaying) {
+        oscNode.frequency.setValueAtTime(state.freq, audioCtx.currentTime);
+      }
+      updateSimulation();
+    });
+    sliderG.addEventListener('input', e => {
+      state.gain = parseFloat(e.target.value);
+      if (gainNode && isPlaying) {
+        gainNode.gain.setValueAtTime(state.gain, audioCtx.currentTime);
+      }
+      updateSimulation();
+    });
+
+    function getPointerPos(e) {
+      const rectBounds = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rectBounds.width;
+      const scaleY = canvas.height / rectBounds.height;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: (clientX - rectBounds.left) * scaleX,
+        y: (clientY - rectBounds.top) * scaleY
+      };
+    }
+
+    function onPointerDown(e) {
+      const pos = getPointerPos(e);
+      const room = getRoomRect();
+      const subPx = { x: room.x + state.sub.x * room.w, y: room.y + state.sub.y * room.h };
+      const seatPx = { x: room.x + state.seat.x * room.w, y: room.y + state.seat.y * room.h };
+
+      if (Math.hypot(pos.x - subPx.x, pos.y - subPx.y) < 24) {
+        state.dragging = 'sub';
+      } else if (Math.hypot(pos.x - seatPx.x, pos.y - seatPx.y) < 24) {
+        state.dragging = 'seat';
+      }
+    }
+
+    function onPointerMove(e) {
+      if (!state.dragging) return;
+      e.preventDefault();
+      const pos = getPointerPos(e);
+      const room = getRoomRect();
+      const nx = Math.max(0.02, Math.min(0.98, (pos.x - room.x) / room.w));
+      const ny = Math.max(0.02, Math.min(0.98, (pos.y - room.y) / room.h));
+
+      state[state.dragging].x = nx;
+      state[state.dragging].y = ny;
+      updateSimulation();
+    }
+
+    function onPointerUp() {
+      state.dragging = null;
+    }
+
+    canvas.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+
+    canvas.addEventListener('touchstart', onPointerDown, { passive: false });
+    window.addEventListener('touchmove', onPointerMove, { passive: false });
+    window.addEventListener('touchend', onPointerUp);
+
+    updateSimulation();
+  </script>
+</body>
+</html>
