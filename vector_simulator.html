@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MeGem Sovereign Vector &amp; Quantum State Workbench (2D–11D)</title>
+  <style>
+    :root {
+      --bg: #070b12;
+      --panel: #0e1522;
+      --panel-2: #131d30;
+      --border: #22314d;
+      --text: #eef4ff;
+      --muted: #93a6c7;
+      --accent: #38bdf8;
+      --accent-2: #a855f7;
+      --accent-3: #22c55e;
+      --warn: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at top right, #11203a 0%, var(--bg) 55%);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.9rem 1.25rem;
+      background: rgba(14, 21, 34, 0.92);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.14);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+
+    .badge-11d {
+      background: rgba(168, 85, 247, 0.16);
+      color: #d8b4fe;
+      border-color: rgba(168, 85, 247, 0.4);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .nav-link {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 0.45rem 0.8rem;
+      border-radius: 8px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+    }
+
+    .nav-link:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 1.45fr) minmax(300px, 1fr);
+      gap: 1rem;
+      padding: 1rem 1.25rem 2rem;
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+
+    .mode-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .mode-btn {
+      padding: 0.45rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.84rem;
+      cursor: pointer;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: #04101c;
+      border-color: var(--accent);
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 10px;
+      background: #060a11;
+      border: 1px solid var(--border);
+    }
+
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+      gap: 0.65rem;
+      margin-top: 0.85rem;
+    }
+
+    .metric {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+    }
+
+    .metric-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .metric-value {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-top: 0.15rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .controls-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    .section-title {
+      margin: 0 0 0.5rem;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .preset-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .preset-btn {
+      padding: 0.35rem 0.6rem;
+      font-size: 0.78rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent-2);
+    }
+
+    .slider-row {
+      display: grid;
+      grid-template-columns: 74px 1fr 56px;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.4rem;
+      font-size: 0.82rem;
+    }
+
+    .slider-row label {
+      color: var(--muted);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .slider-row input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .slider-val {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
+    .basis-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
+      gap: 0.45rem;
+      max-height: 230px;
+      overflow-y: auto;
+      padding-right: 0.25rem;
+    }
+
+    .basis-box {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 0.45rem 0.55rem;
+      font-size: 0.76rem;
+    }
+
+    .basis-box span {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 0.2rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .basis-box input {
+      width: 100%;
+      accent-color: var(--accent-2);
+    }
+
+    .callout {
+      margin-top: 0.75rem;
+      padding: 0.7rem 0.8rem;
+      border-radius: 8px;
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .callout strong {
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-group">
+      <span class="badge">MeGem Portfolio</span>
+      <span class="badge badge-11d">2D · 3D · 4D · 11D · Quantum</span>
+      <h1>Interactive Vector &amp; Quantum State Workbench</h1>
+    </div>
+    <a class="nav-link" href="index.html">Back to Portfolio</a>
+  </header>
+
+  <main class="layout">
+    <section class="card">
+      <div class="mode-bar" role="tablist" aria-label="Vector dimension and quantum mode">
+        <button type="button" class="mode-btn active" data-mode="2d">2D Plane</button>
+        <button type="button" class="mode-btn" data-mode="3d">3D Space</button>
+        <button type="button" class="mode-btn" data-mode="4d">4D Hyper-Projection</button>
+        <button type="button" class="mode-btn" data-mode="11d">11D Basis Space (e1–e11)</button>
+        <button type="button" class="mode-btn" data-mode="quantum">Quantum State (|ψ⟩ &amp; Bloch)</button>
+      </div>
+
+      <canvas id="stage" width="820" height="500"></canvas>
+
+      <div class="telemetry-grid">
+        <div class="metric">
+          <div class="metric-label">|A| Magnitude</div>
+          <div class="metric-value" id="magA" style="color: #38bdf8;">0.00</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">|B| Magnitude</div>
+          <div class="metric-value" id="magB" style="color: #f472b6;">0.00</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">|A + B| Resultant</div>
+          <div class="metric-value" id="magR" style="color: #22c55e;">0.00</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Inner / Dot ⟨A, B⟩</div>
+          <div class="metric-value" id="dotAB" style="color: #fbbf24;">0.00</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Subspace Angle θ</div>
+          <div class="metric-value" id="angleAB">0.0°</div>
+        </div>
+        <div class="metric" id="quantumMetricCard">
+          <div class="metric-label">Quantum Readout</div>
+          <div class="metric-value" id="qReadout" style="color: #c084fc;">P(|0⟩) 50% · P(|1⟩) 50%</div>
+        </div>
+      </div>
+
+      <div class="callout" id="modeExplanation">
+        <strong>Trade-off &amp; Projection Note:</strong> Higher-dimensional vectors (4D, 11D basis weights, and quantum state vectors) are rendered via orthogonal/stereographic projection into a 2D viewport. Inspecting one subspace at a time makes angles and magnitudes clear, while projection collapses orthogonal components that remain visible in the numeric readouts.
+      </div>
+    </section>
+
+    <aside class="card controls-stack">
+      <div>
+        <h2 class="section-title">Scenario Presets</h2>
+        <div class="preset-row">
+          <button type="button" class="preset-btn" data-preset="orthogonal">Orthogonal Basis</button>
+          <button type="button" class="preset-btn" data-preset="tesseract">4D Rotation</button>
+          <button type="button" class="preset-btn" data-preset="elevenD">11D Mode Spectrum</button>
+          <button type="button" class="preset-btn" data-preset="superposition">Quantum |+⟩ State</button>
+          <button type="button" class="preset-btn" data-preset="phaseShift">Phase Gate (π/2)</button>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="section-title">Primary Vectors A &amp; B (Axes X, Y, Z, W)</h2>
+        <div id="primarySliders"></div>
+      </div>
+
+      <div>
+        <h2 class="section-title">Quantum State Controls (θ Polar, φ Azimuth, Phase)</h2>
+        <div class="slider-row">
+          <label for="qTheta">θ Polar</label>
+          <input id="qTheta" type="range" min="0" max="3.14159" step="0.01" value="1.57" />
+          <span class="slider-val" id="qThetaVal">1.57</span>
+        </div>
+        <div class="slider-row">
+          <label for="qPhi">φ Azimuth</label>
+          <input id="qPhi" type="range" min="-3.14159" max="3.14159" step="0.01" value="0.00" />
+          <span class="slider-val" id="qPhiVal">0.00</span>
+        </div>
+        <div class="slider-row">
+          <label for="qPhase">Rel. Phase</label>
+          <input id="qPhase" type="range" min="0" max="6.28318" step="0.01" value="0.78" />
+          <span class="slider-val" id="qPhaseVal">0.78</span>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="section-title">11D Basis Weights (e1 – e11)</h2>
+        <div class="basis-grid" id="basis11DGrid"></div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    const state = {
+      mode: "2d",
+      a: [3.2, 2.1, 1.5, 1.2],
+      b: [1.4, -2.5, 2.0, -1.0],
+      e11: [1.8, -1.2, 2.4, 0.9, -1.5, 1.1, 0.6, -0.8, 1.4, -0.5, 1.2],
+      qTheta: 1.57,
+      qPhi: 0.0,
+      qPhase: 0.78,
+      rotYaw: 0.65,
+      rotPitch: 0.42
+    };
+
+    const canvas = document.getElementById("stage");
+    const ctx = canvas.getContext("2d");
+
+    const modeNotes = {
+      "2d": "<strong>2D Plane Mode:</strong> Direct Cartesian components (x, y) for vectors A and B, their resultant A + B, inner product, and angle between directions.",
+      "3d": "<strong>3D Space Mode:</strong> Adds z-axis depth with axonometric projection and drop-lines to the xy-plane so out-of-plane components remain readable.",
+      "4d": "<strong>4D Hyper-Projection Mode:</strong> Maps (x, y, z, w) through a 4D-to-3D perspective step before 2D screen projection—showing how w-axis shifts apparent scale and angle.",
+      "11d": "<strong>11D Basis Space (e1–e11):</strong> Tracks an 11-component vector across basis axes e1 through e11, displaying a spectral bar profile alongside an 11-spoke radial harmonic projection.",
+      "quantum": "<strong>Quantum State Mode (|ψ⟩ = cos(θ/2)|0⟩ + e^{iφ}sin(θ/2)|1⟩):</strong> Visualizes normalized state amplitudes, relative phase angle, Born probabilities P(|0⟩) & P(|1⟩), and Bloch-sphere vector coordinates."
+    };
+
+    function buildPrimarySliders() {
+      const container = document.getElementById("primarySliders");
+      const axes = ["x", "y", "z", "w"];
+      container.innerHTML = "";
+
+      axes.forEach((ax, idx) => {
+        const rowA = document.createElement("div");
+        rowA.className = "slider-row";
+        rowA.innerHTML = `
+          <label for="a_${ax}">A.${ax}</label>
+          <input id="a_${ax}" type="range" min="-5" max="5" step="0.1" value="${state.a[idx]}" />
+          <span class="slider-val" id="val_a_${ax}">${state.a[idx].toFixed(1)}</span>
+        `;
+        container.appendChild(rowA);
+
+        const rowB = document.createElement("div");
+        rowB.className = "slider-row";
+        rowB.innerHTML = `
+          <label for="b_${ax}">B.${ax}</label>
+          <input id="b_${ax}" type="range" min="-5" max="5" step="0.1" value="${state.b[idx]}" />
+          <span class="slider-val" id="val_b_${ax}">${state.b[idx].toFixed(1)}</span>
+        `;
+        container.appendChild(rowB);
+      });
+
+      axes.forEach((ax, idx) => {
+        document.getElementById(`a_${ax}`).addEventListener("input", (e) => {
+          state.a[idx] = parseFloat(e.target.value);
+          document.getElementById(`val_a_${ax}`).textContent = state.a[idx].toFixed(1);
+          render();
+        });
+        document.getElementById(`b_${ax}`).addEventListener("input", (e) => {
+          state.b[idx] = parseFloat(e.target.value);
+          document.getElementById(`val_b_${ax}`).textContent = state.b[idx].toFixed(1);
+          render();
+        });
+      });
+    }
+
+    function build11DSliders() {
+      const grid = document.getElementById("basis11DGrid");
+      grid.innerHTML = "";
+      state.e11.forEach((val, idx) => {
+        const box = document.createElement("div");
+        box.className = "basis-box";
+        box.innerHTML = `
+          <span>e${idx + 1}: <strong id="e11_lbl_${idx}">${val.toFixed(1)}</strong></span>
+          <input id="e11_in_${idx}" type="range" min="-4" max="4" step="0.1" value="${val}" />
+        `;
+        grid.appendChild(box);
+      });
+
+      state.e11.forEach((_, idx) => {
+        document.getElementById(`e11_in_${idx}`).addEventListener("input", (e) => {
+          state.e11[idx] = parseFloat(e.target.value);
+          document.getElementById(`e11_lbl_${idx}`).textContent = state.e11[idx].toFixed(1);
+          render();
+        });
+      });
+    }
+
+    function syncAllUI() {
+      const axes = ["x", "y", "z", "w"];
+      axes.forEach((ax, idx) => {
+        const aEl = document.getElementById(`a_${ax}`);
+        const bEl = document.getElementById(`b_${ax}`);
+        if (aEl && bEl) {
+          aEl.value = state.a[idx];
+          bEl.value = state.b[idx];
+          document.getElementById(`val_a_${ax}`).textContent = state.a[idx].toFixed(1);
+          document.getElementById(`val_b_${ax}`).textContent = state.b[idx].toFixed(1);
+        }
+      });
+
+      state.e11.forEach((val, idx) => {
+        const el = document.getElementById(`e11_in_${idx}`);
+        if (el) {
+          el.value = val;
+          document.getElementById(`e11_lbl_${idx}`).textContent = val.toFixed(1);
+        }
+      });
+
+      document.getElementById("qTheta").value = state.qTheta;
+      document.getElementById("qPhi").value = state.qPhi;
+      document.getElementById("qPhase").value = state.qPhase;
+      document.getElementById("qThetaVal").textContent = state.qTheta.toFixed(2);
+      document.getElementById("qPhiVal").textContent = state.qPhi.toFixed(2);
+      document.getElementById("qPhaseVal").textContent = state.qPhase.toFixed(2);
+    }
+
+    function activeSliceLen() {
+      if (state.mode === "2d") return 2;
+      if (state.mode === "3d") return 3;
+      if (state.mode === "4d") return 4;
+      return 4;
+    }
+
+    function computeMetrics() {
+      if (state.mode === "11d") {
+        const v = state.e11;
+        const norm = Math.hypot(...v);
+        const maxComp = Math.max(...v.map(Math.abs));
+        return {
+          magA: norm.toFixed(2),
+          magB: maxComp.toFixed(2),
+          magR: (norm / Math.sqrt(11)).toFixed(2),
+          dotAB: v.reduce((acc, val, i) => acc + val * (i + 1) * 0.1, 0).toFixed(2),
+          angleAB: `${((Math.acos(Math.max(-1, Math.min(1, v[0] / (norm || 1)))) * 180) / Math.PI).toFixed(1)}°`,
+          qText: `11D L2 Norm: ${norm.toFixed(2)}`
+        };
+      }
+
+      if (state.mode === "quantum") {
+        const c0 = Math.cos(state.qTheta / 2);
+        const s1 = Math.sin(state.qTheta / 2);
+        const p0 = c0 * c0;
+        const p1 = s1 * s1;
+        const bx = Math.sin(state.qTheta) * Math.cos(state.qPhi);
+        const by = Math.sin(state.qTheta) * Math.sin(state.qPhi);
+        const bz = Math.cos(state.qTheta);
+        return {
+          magA: Math.abs(c0).toFixed(2),
+          magB: Math.abs(s1).toFixed(2),
+          magR: (p0 + p1).toFixed(2),
+          dotAB: (c0 * s1 * Math.cos(state.qPhase)).toFixed(2),
+          angleAB: `${((state.qTheta * 180) / Math.PI).toFixed(1)}°`,
+          qText: `P(|0⟩) ${(p0 * 100).toFixed(0)}% · P(|1⟩) ${(p1 * 100).toFixed(0)}% · z=${bz.toFixed(2)} (φ=${bx.toFixed(2)},${by.toFixed(2)})`
+        };
+      }
+
+      const n = activeSliceLen();
+      const va = state.a.slice(0, n);
+      const vb = state.b.slice(0, n);
+      const vr = va.map((x, i) => x + vb[i]);
+
+      const magA = Math.hypot(...va);
+      const magB = Math.hypot(...vb);
+      const magR = Math.hypot(...vr);
+      const dot = va.reduce((sum, x, i) => sum + x * vb[i], 0);
+      const denom = magA * magB;
+      const cosTheta = denom > 1e-6 ? Math.max(-1, Math.min(1, dot / denom)) : 1;
+      const deg = (Math.acos(cosTheta) * 180) / Math.PI;
+
+      return {
+        magA: magA.toFixed(2),
+        magB: magB.toFixed(2),
+        magR: magR.toFixed(2),
+        dotAB: dot.toFixed(2),
+        angleAB: `${deg.toFixed(1)}°`,
+        qText: `Dim ${n}D Active`
+      };
+    }
+
+    function project3D(x, y, z, cx, cy, scale) {
+      const cosY = Math.cos(state.rotYaw);
+      const sinY = Math.sin(state.rotYaw);
+      const cosX = Math.cos(state.rotPitch);
+      const sinX = Math.sin(state.rotPitch);
+
+      const x1 = x * cosY - z * sinY;
+      const z1 = x * sinY + z * cosY;
+      const y2 = y * cosX - z1 * sinX;
+      const z2 = y * sinX + z1 * cosX;
+
+      const persp = 8 / (8 - z2 * 0.45);
+      return {
+        px: cx + x1 * scale * persp,
+        py: cy - y2 * scale * persp
+      };
+    }
+
+    function project4DTo3D(x, y, z, w) {
+      const d = 6.5;
+      const factor = d / Math.max(1.8, d - w);
+      return [x * factor, y * factor, z * factor];
+    }
+
+    function drawArrow(x1, y1, x2, y2, color, width = 2.6, dashed = false) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      if (dashed) ctx.setLineDash([6, 5]);
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+      const ang = Math.atan2(y2 - y1, x2 - x1);
+      const head = 9;
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - head * Math.cos(ang - Math.PI / 6), y2 - head * Math.sin(ang - Math.PI / 6));
+      ctx.lineTo(x2 - head * Math.cos(ang + Math.PI / 6), y2 - head * Math.sin(ang + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function render() {
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const cx = w * 0.5;
+      const cy = h * 0.52;
+      const scale = 42;
+
+      if (state.mode === "11d") {
+        const radius = 145;
+        ctx.strokeStyle = "#1e2d47";
+        ctx.lineWidth = 1;
+        for (let r = 45; r <= radius; r += 50) {
+          ctx.beginPath();
+          ctx.arc(cx, cy - 20, r, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        const pts = [];
+        for (let i = 0; i < 11; i++) {
+          const theta = -Math.PI / 2 + (i * Math.PI * 2) / 11;
+          const axEndX = cx + Math.cos(theta) * radius;
+          const axEndY = cy - 20 + Math.sin(theta) * radius;
+          ctx.strokeStyle = "#263857";
+          ctx.beginPath();
+          ctx.moveTo(cx, cy - 20);
+          ctx.lineTo(axEndX, axEndY);
+          ctx.stroke();
+
+          ctx.fillStyle = "#93a6c7";
+          ctx.font = "11px system-ui, sans-serif";
+          ctx.fillText(`e${i + 1}`, cx + Math.cos(theta) * (radius + 14) - 8, cy - 20 + Math.sin(theta) * (radius + 14) + 4);
+
+          const mag = (state.e11[i] / 4) * radius;
+          pts.push({
+            x: cx + Math.cos(theta) * mag,
+            y: cy - 20 + Math.sin(theta) * mag
+          });
+        }
+
+        ctx.strokeStyle = "#a855f7";
+        ctx.fillStyle = "rgba(168, 85, 247, 0.22)";
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        pts.forEach((p, idx) => {
+          if (idx === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        });
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        const barAreaTop = h - 78;
+        const barW = (w - 120) / 11;
+        state.e11.forEach((val, i) => {
+          const bx = 60 + i * barW;
+          const bh = (val / 4) * 28;
+          ctx.fillStyle = val >= 0 ? "#38bdf8" : "#f472b6";
+          ctx.fillRect(bx + 4, barAreaTop - Math.max(0, bh), barW - 8, Math.abs(bh) || 2);
+          ctx.fillStyle = "#93a6c7";
+          ctx.font = "10px system-ui, sans-serif";
+          ctx.fillText(`e${i + 1}`, bx + barW * 0.25, h - 22);
+        });
+      } else if (state.mode === "quantum") {
+        const r = 135;
+        const qcx = w * 0.36;
+        const qcy = cy;
+
+        ctx.strokeStyle = "#2b3f63";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(qcx, qcy, r, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = "#1a2840";
+        ctx.beginPath();
+        ctx.ellipse(qcx, qcy, r, r * 0.34, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = "#93a6c7";
+        ctx.font = "12px system-ui, sans-serif";
+        ctx.fillText("|0⟩", qcx - 8, qcy - r - 10);
+        ctx.fillText("|1⟩", qcx - 8, qcy + r + 20);
+
+        const bx = Math.sin(state.qTheta) * Math.cos(state.qPhi);
+        const by = Math.sin(state.qTheta) * Math.sin(state.qPhi);
+        const bz = Math.cos(state.qTheta);
+        const proj = project3D(bx * 2.8, bz * 2.8, by * 2.8, qcx, qcy, r / 2.8);
+        drawArrow(qcx, qcy, proj.px, proj.py, "#c084fc", 3.2, false);
+
+        const c0 = Math.cos(state.qTheta / 2);
+        const s1 = Math.sin(state.qTheta / 2);
+        const p0 = c0 * c0;
+        const p1 = s1 * s1;
+        const barX = w * 0.66;
+        const maxBarW = 190;
+
+        ctx.fillStyle = "#eef4ff";
+        ctx.font = "13px system-ui, sans-serif";
+        ctx.fillText("Born Probabilities & Amplitudes", barX, 130);
+
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillRect(barX, 155, p0 * maxBarW, 24);
+        ctx.fillStyle = "#93a6c7";
+        ctx.fillText(`|0⟩ amp ${c0.toFixed(2)}  →  P(|0⟩) = ${(p0 * 100).toFixed(1)}%`, barX, 196);
+
+        ctx.fillStyle = "#f472b6";
+        ctx.fillRect(barX, 225, p1 * maxBarW, 24);
+        ctx.fillStyle = "#93a6c7";
+        ctx.fillText(`|1⟩ amp ${s1.toFixed(2)}  →  P(|1⟩) = ${(p1 * 100).toFixed(1)}%`, barX, 266);
+
+        ctx.fillStyle = "#fbbf24";
+        ctx.fillText(`Phase offset φ = ${state.qPhi.toFixed(2)} rad · gate phase = ${state.qPhase.toFixed(2)} rad`, barX, 315);
+      } else {
+        ctx.strokeStyle = "#142033";
+        ctx.lineWidth = 1;
+        for (let g = -6; g <= 6; g++) {
+          ctx.beginPath();
+          ctx.moveTo(cx + g * scale, 25);
+          ctx.lineTo(cx + g * scale, h - 25);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(25, cy + g * scale);
+          ctx.lineTo(w - 25, cy + g * scale);
+          ctx.stroke();
+        }
+
+        let aVec = [state.a[0], state.a[1], 0];
+        let bVec = [state.b[0], state.b[1], 0];
+
+        if (state.mode === "3d") {
+          aVec = [state.a[0], state.a[1], state.a[2]];
+          bVec = [state.b[0], state.b[1], state.b[2]];
+        } else if (state.mode === "4d") {
+          aVec = project4DTo3D(state.a[0], state.a[1], state.a[2], state.a[3]);
+          bVec = project4DTo3D(state.b[0], state.b[1], state.b[2], state.b[3]);
+        }
+
+        const rVec = [aVec[0] + bVec[0], aVec[1] + bVec[1], aVec[2] + bVec[2]];
+
+        const toScreen = (v) =>
+          state.mode === "2d"
+            ? { px: cx + v[0] * scale, py: cy - v[1] * scale }
+            : project3D(v[0], v[1], v[2], cx, cy, scale);
+
+        const o = toScreen([0, 0, 0]);
+        const pa = toScreen(aVec);
+        const pb = toScreen(bVec);
+        const pr = toScreen(rVec);
+
+        drawArrow(pa.px, pa.py, pr.px, pr.py, "rgba(244, 114, 182, 0.55)", 1.6, true);
+        drawArrow(pb.px, pb.py, pr.px, pr.py, "rgba(56, 189, 248, 0.55)", 1.6, true);
+
+        drawArrow(o.px, o.py, pa.px, pa.py, "#38bdf8", 3, false);
+        drawArrow(o.px, o.py, pb.px, pb.py, "#f472b6", 3, false);
+        drawArrow(o.px, o.py, pr.px, pr.py, "#22c55e", 3.2, false);
+
+        ctx.font = "bold 12px system-ui, sans-serif";
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillText("A", pa.px + 8, pa.py - 6);
+        ctx.fillStyle = "#f472b6";
+        ctx.fillText("B", pb.px + 8, pb.py - 6);
+        ctx.fillStyle = "#22c55e";
+        ctx.fillText("A + B", pr.px + 8, pr.py - 6);
+      }
+
+      const m = computeMetrics();
+      document.getElementById("magA").textContent = m.magA;
+      document.getElementById("magB").textContent = m.magB;
+      document.getElementById("magR").textContent = m.magR;
+      document.getElementById("dotAB").textContent = m.dotAB;
+      document.getElementById("angleAB").textContent = m.angleAB;
+      document.getElementById("qReadout").textContent = m.qText;
+      document.getElementById("modeExplanation").innerHTML = modeNotes[state.mode];
+    }
+
+    document.querySelectorAll(".mode-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".mode-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.mode = btn.dataset.mode;
+        render();
+      });
+    });
+
+    document.querySelectorAll(".preset-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const p = btn.dataset.preset;
+        if (p === "orthogonal") {
+          state.a = [3.5, 0.0, 1.5, 0.0];
+          state.b = [0.0, 3.5, 0.0, 2.0];
+          state.mode = "2d";
+        } else if (p === "tesseract") {
+          state.a = [2.4, 1.8, 1.6, 3.2];
+          state.b = [-1.5, 2.2, -1.4, -2.5];
+          state.mode = "4d";
+        } else if (p === "elevenD") {
+          state.e11 = [3.2, -2.1, 2.8, 1.6, -2.4, 2.0, 1.2, -1.8, 2.5, -1.1, 3.0];
+          state.mode = "11d";
+        } else if (p === "superposition") {
+          state.qTheta = Math.PI / 2;
+          state.qPhi = 0;
+          state.qPhase = 0;
+          state.mode = "quantum";
+        } else if (p === "phaseShift") {
+          state.qTheta = Math.PI / 2;
+          state.qPhi = Math.PI / 2;
+          state.qPhase = Math.PI / 2;
+          state.mode = "quantum";
+        }
+
+        document.querySelectorAll(".mode-btn").forEach((b) => {
+          b.classList.toggle("active", b.dataset.mode === state.mode);
+        });
+        syncAllUI();
+        render();
+      });
+    });
+
+    document.getElementById("qTheta").addEventListener("input", (e) => {
+      state.qTheta = parseFloat(e.target.value);
+      document.getElementById("qThetaVal").textContent = state.qTheta.toFixed(2);
+      render();
+    });
+    document.getElementById("qPhi").addEventListener("input", (e) => {
+      state.qPhi = parseFloat(e.target.value);
+      document.getElementById("qPhiVal").textContent = state.qPhi.toFixed(2);
+      render();
+    });
+    document.getElementById("qPhase").addEventListener("input", (e) => {
+      state.qPhase = parseFloat(e.target.value);
+      document.getElementById("qPhaseVal").textContent = state.qPhase.toFixed(2);
+      render();
+    });
+
+    buildPrimarySliders();
+    build11DSliders();
+    render();
+  </script>
+</body>
+</html>
