@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Four-Seater Simulation</title>
+  <style>
+    .dashboard {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      background: #161b22;
+      color: #f0f6fc;
+      font-family: system-ui, sans-serif;
+    }
+    .cabin {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(120px, 1fr));
+      gap: 0.75rem;
+      max-width: 360px;
+      padding: 1rem;
+      border: 2px solid #30363d;
+      border-radius: 12px;
+      background: #0d1117;
+    }
+    .seat {
+      padding: 1.25rem 0.75rem;
+      border: 1px solid #388bfd;
+      border-radius: 8px;
+      background: #1f6feb;
+      color: #ffffff;
+      font-family: system-ui, sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.15s ease;
+    }
+    .seat:hover {
+      transform: translateY(-1px);
+    }
+    .seat.occupied {
+      background: #da3633;
+      border-color: #f85149;
+    }
+  </style>
+</head>
+<body>
+  <p><a href="index.html">Back to Portfolio</a></p>
+  <div class="dashboard" aria-live="polite">
+    <span id="status-state">State: Active</span>
+    <span id="occupancy-count">Occupancy: 0/4</span>
+  </div>
+  <div class="cabin" role="group" aria-label="Four-seater cabin layout">
+    <button type="button" class="seat" onclick="toggleSeat(this)">Front Left (Driver)</button>
+    <button type="button" class="seat" onclick="toggleSeat(this)">Front Right</button>
+    <button type="button" class="seat" onclick="toggleSeat(this)">Rear Left</button>
+    <button type="button" class="seat" onclick="toggleSeat(this)">Rear Right</button>
+  </div>
+  <script>
+    function updateCount() {
+      const seats = document.querySelectorAll('.cabin .seat');
+      const occupied = document.querySelectorAll('.cabin .seat.occupied').length;
+      const countEl = document.getElementById('occupancy-count');
+      if (countEl) {
+        countEl.textContent = `Occupancy: ${occupied}/${seats.length}`;
+      }
+    }
+    function toggleSeat(element) {
+      if (!element) return;
+      element.classList.toggle('occupied');
+      updateCount();
+    }
+    updateCount();
+  </script>
+</body>
+</html>

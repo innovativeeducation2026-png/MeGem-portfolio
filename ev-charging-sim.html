@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EV Charging Hub Simulator (50 kW DC vs 22 kW AC) — MeGem</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --panel-2: #162033;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+      --dc: #38bdf8;
+      --ac: #34d399;
+      --warn: #fbbf24;
+      --busy: #f87171;
+      --accent: #a78bfa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      padding: 16px;
+    }
+    .wrap {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .topbar h1 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+    .topbar p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    a.back-link {
+      color: var(--text);
+      text-decoration: none;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    a.back-link:hover {
+      border-color: var(--dc);
+    }
+    .telemetry {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 12px;
+    }
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .stat .label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .stat .value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+    .controls {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    button {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover {
+      border-color: var(--dc);
+    }
+    button.primary {
+      background: #1d4ed8;
+      border-color: #3b82f6;
+    }
+    button.warn {
+      background: #78350f;
+      border-color: #d97706;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+    }
+    .bays {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 10px;
+    }
+    .bay {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .bay.occupied {
+      border-color: var(--busy);
+    }
+    .bay-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+    .tag {
+      font-size: 0.72rem;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+    .tag.dc { background: rgba(56, 189, 248, 0.16); color: var(--dc); }
+    .tag.ac { background: rgba(52, 211, 153, 0.16); color: var(--ac); }
+    .bay-meta {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+    .meter {
+      height: 8px;
+      background: #0b1220;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .meter > div {
+      height: 100%;
+      width: 0%;
+      background: var(--dc);
+      transition: width 0.15s linear;
+    }
+    .bay.ac-bay .meter > div {
+      background: var(--ac);
+    }
+    canvas {
+      width: 100%;
+      height: 210px;
+      display: block;
+      background: #0b1220;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .queue-list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      min-height: 44px;
+    }
+    .sim-clock {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div>
+        <h1>EV Charging Hub Simulator — 50 kW Rapid DC vs. 22 kW AC</h1>
+        <p>Compare rapid DC and AC charging bays across everyday EV drivers and private-hire/delivery turnarounds.</p>
+      </div>
+      <a class="back-link" href="index.html">Back to Portfolio</a>
+    </header>
+
+    <section class="telemetry" aria-label="Hub Telemetry">
+      <div class="stat">
+        <div class="label">Active Power Draw</div>
+        <div class="value" id="statPower">0.0 / 100 kW</div>
+      </div>
+      <div class="stat">
+        <div class="label">Energy Delivered (kWh)</div>
+        <div class="value" id="statEnergy">0.00 kWh</div>
+      </div>
+      <div class="stat">
+        <div class="label">Active Bays</div>
+        <div class="value" id="statBays">0 / 4</div>
+      </div>
+      <div class="stat">
+        <div class="label">Queue Waiting</div>
+        <div class="value" id="statQueue">0 drivers</div>
+      </div>
+    </section>
+
+    <section class="controls" aria-label="Simulation Controls">
+      <div class="btn-group">
+        <button id="toggleRunBtn" class="primary" type="button">Pause</button>
+        <button id="addShopperBtn" type="button">+ Everyday EV Driver</button>
+        <button id="addFleetBtn" type="button">+ Private-Hire / Delivery</button>
+        <button id="cycleCapBtn" type="button">Site Cap: 100 kW</button>
+        <button id="resetBtn" class="warn" type="button">Reset Hub</button>
+      </div>
+      <div class="sim-clock" id="simClock">Sim Time: 00:00 (1 sim min = 1s)</div>
+    </section>
+
+    <section class="panel">
+      <h2>Charging Bays (Click Unplug/Clear on an active bay or let sessions complete)</h2>
+      <div class="bays" id="baysContainer"></div>
+    </section>
+
+    <div class="grid-2">
+      <section class="panel">
+        <h2>Load Profile &amp; Feeder Cap (kW)</h2>
+        <canvas id="loadCanvas" width="480" height="210"></canvas>
+      </section>
+      <section class="panel">
+        <h2>Waiting Queue &amp; Session Log</h2>
+        <ul class="queue-list" id="queueList">
+          <li>No vehicles waiting in queue.</li>
+        </ul>
+        <p class="bay-meta" id="logSummary" style="margin-top:10px;">
+          Completed sessions: 0 | Shoppers: 0 | Private-Hire/Delivery: 0
+        </p>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const SITE_CAPS = [72, 100, 150];
+    let capIndex = 1;
+    let running = true;
+    let simMinutes = 0;
+    let totalEnergyKwh = 0;
+    let completedCount = 0;
+    let shopperCount = 0;
+    let fleetCount = 0;
+    let nextId = 1;
+
+    const bays = [
+      { id: "DC-1", label: "Bay 1 · Rapid DC", type: "DC", maxKw: 50, allocatedKw: 0, session: null },
+      { id: "DC-2", label: "Bay 2 · Rapid DC", type: "DC", maxKw: 50, allocatedKw: 0, session: null },
+      { id: "AC-1", label: "Bay 3 · Fast AC", type: "AC", maxKw: 22, allocatedKw: 0, session: null },
+      { id: "AC-2", label: "Bay 4 · Fast AC", type: "AC", maxKw: 22, allocatedKw: 0, session: null }
+    ];
+
+    const queue = [];
+    const history = Array.from({ length: 60 }, () => 0);
+
+    const els = {
+      statPower: document.getElementById("statPower"),
+      statEnergy: document.getElementById("statEnergy"),
+      statBays: document.getElementById("statBays"),
+      statQueue: document.getElementById("statQueue"),
+      baysContainer: document.getElementById("baysContainer"),
+      queueList: document.getElementById("queueList"),
+      logSummary: document.getElementById("logSummary"),
+      simClock: document.getElementById("simClock"),
+      toggleRunBtn: document.getElementById("toggleRunBtn"),
+      cycleCapBtn: document.getElementById("cycleCapBtn"),
+      canvas: document.getElementById("loadCanvas")
+    };
+    const ctx = els.canvas.getContext("2d");
+
+    function createDriver(kind) {
+      const isFleet = kind === "fleet";
+      if (isFleet) fleetCount += 1;
+      else shopperCount += 1;
+
+      const targetKwh = isFleet
+        ? +(18 + Math.random() * 14).toFixed(1)
+        : +(8 + Math.random() * 10).toFixed(1);
+
+      return {
+        id: "EV-" + String(nextId++).padStart(2, "0"),
+        kind,
+        kindLabel: isFleet ? "Private-Hire / Delivery" : "Everyday EV",
+        preferDc: isFleet ? Math.random() < 0.75 : Math.random() < 0.45,
+        targetKwh,
+        deliveredKwh: 0,
+        waitMinutes: 0
+      };
+    }
+
+    function assignFromQueue() {
+      for (let i = 0; i < queue.length; i++) {
+        const driver = queue[i];
+        const orderedBays = [...bays].sort((a, b) => {
+          if (a.session || b.session) return a.session ? 1 : -1;
+          if (driver.preferDc) return b.maxKw - a.maxKw;
+          return a.maxKw - b.maxKw;
+        });
+        const freeBay = orderedBays.find((b) => !b.session);
+        if (freeBay) {
+          freeBay.session = driver;
+          queue.splice(i, 1);
+          i -= 1;
+        }
+      }
+    }
+
+    function enqueueDriver(kind) {
+      queue.push(createDriver(kind));
+      assignFromQueue();
+      render();
+    }
+
+    function releaseBay(bayIndex) {
+      const bay = bays[bayIndex];
+      if (!bay.session) return;
+      completedCount += 1;
+      bay.session = null;
+      bay.allocatedKw = 0;
+      assignFromQueue();
+      render();
+    }
+
+    function stepSimulation(dtMinutes) {
+      const siteCap = SITE_CAPS[capIndex];
+      simMinutes += dtMinutes;
+
+      for (const d of queue) {
+        d.waitMinutes += dtMinutes;
+      }
+
+      const activeBays = bays.filter((b) => b.session);
+      const totalRequestedKw = activeBays.reduce((sum, b) => sum + b.maxKw, 0);
+      const scale = totalRequestedKw > siteCap && totalRequestedKw > 0
+        ? siteCap / totalRequestedKw
+        : 1;
+
+      let totalKwNow = 0;
+
+      for (const bay of bays) {
+        if (!bay.session) {
+          bay.allocatedKw = 0;
+          continue;
+        }
+        const kw = +(bay.maxKw * scale).toFixed(1);
+        bay.allocatedKw = kw;
+        totalKwNow += kw;
+
+        const stepKwh = kw * (dtMinutes / 60);
+        const remaining = Math.max(0, bay.session.targetKwh - bay.session.deliveredKwh);
+        const actualKwh = Math.min(stepKwh, remaining);
+        bay.session.deliveredKwh += actualKwh;
+        totalEnergyKwh += actualKwh;
+
+        if (bay.session.deliveredKwh >= bay.session.targetKwh - 1e-6) {
+          completedCount += 1;
+          bay.session = null;
+          bay.allocatedKw = 0;
+        }
+      }
+
+      assignFromQueue();
+      history.push(totalKwNow);
+      if (history.length > 60) history.shift();
+      render(totalKwNow, siteCap);
+    }
+
+    function drawChart(siteCap) {
+      const w = els.canvas.width;
+      const h = els.canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const maxScale = Math.max(siteCap * 1.15, 110);
+      const capY = h - (siteCap / maxScale) * (h - 24) - 10;
+
+      // Grid lines
+      ctx.strokeStyle = "#1e293b";
+      ctx.lineWidth = 1;
+      for (let i = 1; i <= 4; i++) {
+        const gy = (h / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, gy);
+        ctx.lineTo(w, gy);
+        ctx.stroke();
+      }
+
+      // Site power limit line
+      ctx.save();
+      ctx.strokeStyle = "#fbbf24";
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(0, capY);
+      ctx.lineTo(w, capY);
+      ctx.stroke();
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = "11px system-ui, sans-serif";
+      ctx.fillText(`Site Cap: ${siteCap} kW`, 8, Math.max(14, capY - 5));
+      ctx.restore();
+
+      // Power curve
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      history.forEach((val, idx) => {
+        const x = (idx / (history.length - 1)) * (w - 16) + 8;
+        const y = h - (val / maxScale) * (h - 24) - 10;
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+
+    function render(currentKw = 0, siteCap = SITE_CAPS[capIndex]) {
+      const occupiedCount = bays.filter((b) => b.session).length;
+      els.statPower.textContent = `${currentKw.toFixed(1)} / ${siteCap} kW`;
+      els.statEnergy.textContent = `${totalEnergyKwh.toFixed(2)} kWh`;
+      els.statBays.textContent = `${occupiedCount} / ${bays.length}`;
+      els.statQueue.textContent = `${queue.length} ${queue.length === 1 ? "driver" : "drivers"}`;
+
+      const mins = Math.floor(simMinutes);
+      const hh = String(Math.floor(mins / 60)).padStart(2, "0");
+      const mm = String(mins % 60).padStart(2, "0");
+      els.simClock.textContent = `Sim Time: ${hh}:${mm} (1 sim min = 1s)`;
+      els.cycleCapBtn.textContent = `Site Cap: ${siteCap} kW`;
+
+      els.baysContainer.innerHTML = bays.map((bay, idx) => {
+        const s = bay.session;
+        const pct = s ? Math.min(100, Math.round((s.deliveredKwh / s.targetKwh) * 100)) : 0;
+        const tagClass = bay.type === "DC" ? "dc" : "ac";
+        return `
+          <div class="bay ${s ? "occupied" : ""} ${bay.type === "AC" ? "ac-bay" : ""}">
+            <div class="bay-head">
+              <span>${bay.label}</span>
+              <span class="tag ${tagClass}">${bay.maxKw} kW ${bay.type}</span>
+            </div>
+            <div class="bay-meta">
+              ${s
+                ? `<strong>${s.id}</strong> (${s.kindLabel})<br>Draw: <strong>${bay.allocatedKw.toFixed(1)} kW</strong> · ${s.deliveredKwh.toFixed(1)} / ${s.targetKwh.toFixed(1)} kWh`
+                : `Idle · Ready up to ${bay.maxKw} kW`}
+            </div>
+            <div class="meter"><div style="width:${pct}%"></div></div>
+            ${s ? `<button type="button" onclick="releaseBay(${idx})">Unplug ${s.id}</button>` : ""}
+          </div>
+        `;
+      }).join("");
+
+      if (queue.length === 0) {
+        els.queueList.innerHTML = "<li>No vehicles waiting in queue.</li>";
+      } else {
+        els.queueList.innerHTML = queue
+          .map((d) => `<li><strong>${d.id}</strong> (${d.kindLabel}, ${d.targetKwh.toFixed(1)} kWh) — waited ${Math.round(d.waitMinutes)}m</li>`)
+          .join("");
+      }
+
+      els.logSummary.textContent =
+        `Completed sessions: ${completedCount} | Everyday EV: ${shopperCount} | Private-Hire/Delivery: ${fleetCount}`;
+
+      drawChart(siteCap);
+    }
+
+    document.getElementById("toggleRunBtn").addEventListener("click", (e) => {
+      running = !running;
+      e.target.textContent = running ? "Pause" : "Resume";
+    });
+
+    document.getElementById("addShopperBtn").addEventListener("click", () => enqueueDriver("shopper"));
+    document.getElementById("addFleetBtn").addEventListener("click", () => enqueueDriver("fleet"));
+
+    document.getElementById("cycleCapBtn").addEventListener("click", () => {
+      capIndex = (capIndex + 1) % SITE_CAPS.length;
+      render();
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      simMinutes = 0;
+      totalEnergyKwh = 0;
+      completedCount = 0;
+      shopperCount = 0;
+      fleetCount = 0;
+      queue.length = 0;
+      for (const b of bays) {
+        b.session = null;
+        b.allocatedKw = 0;
+      }
+      history.fill(0);
+      render();
+    });
+
+    // Seed an initial mix so the hub is immediately interactive
+    bays[0].session = createDriver("fleet");
+    bays[2].session = createDriver("shopper");
+    render();
+
+    setInterval(() => {
+      if (running) {
+        stepSimulation(1);
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
