@@ -4,6 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MeGem Education Portfolio — Page 3 Pre-Publishing Checklist (V2/V3)</title>
+  <meta name="description" content="MeGem Education Portfolio pre-publishing checklist and commercial scope gate: £9,500 4-Simulator Bundle (0 customisation revisions) and £15,000 Custom Bespoke Build (up to 2 revision rounds), 100% upfront, zero unpaid spec work, £0 recurring stack." />
+  <link rel="canonical" href="https://megem-portfolio.netlify.app/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="en_GB" />
+  <meta property="og:site_name" content="MeGem Education Portfolio" />
+  <meta property="og:url" content="https://megem-portfolio.netlify.app/" />
+  <meta property="og:title" content="MeGem Education Portfolio — Page 3 Pre-Publishing Checklist (V2/V3)" />
+  <meta property="og:description" content="Paid or Owned Only commercial scope gate and browser readiness checklist for MeGem interactive simulators (£9,500 4-Simulator Bundle and £15,000 Custom Bespoke Build)." />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:url" content="https://megem-portfolio.netlify.app/" />
+  <meta name="twitter:title" content="MeGem Education Portfolio — Page 3 Pre-Publishing Checklist (V2/V3)" />
+  <meta name="twitter:description" content="Paid or Owned Only commercial scope gate and browser readiness checklist for MeGem interactive simulators." />
   <style>
     :root {
       --bg: #0c1017;
@@ -294,6 +306,24 @@
       min-height: 1.2em;
       margin-top: 8px;
     }
+    .tier-cta {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.88rem;
+    }
+
+    .tier-cta:hover {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
   </style>
 </head>
 <body>
@@ -323,11 +353,14 @@
             <div class="tier-price">£9,500</div>
             <div class="tier-sub">Upfront Fixed Scope • 0 Customisation Revisions</div>
             <ul>
-              <li>Includes all 4 standalone HTML/JS simulators (<code>swing_equation_simulator.html</code>, <code>lottery_ticket_simulator.html</code>, <code>room_mode_explorer.html</code>, and <code>vector_simulator.html</code>).</li>
+              <li>Includes all 4 standalone HTML/JS simulators (<code>ev-charging-sim.html</code>, <code>four-seater-sim.html</code>, <code>room_mode_explorer.html</code>, and <code>vector_simulator.html</code>).</li>
               <li>Unified launcher, quick-start notes, and defined single-organisation usage/embed scope.</li>
               <li><strong>Revision cap:</strong> 0 customisation revisions (as-tested V2/V3 build; 1 check for launch/embed path configuration only).</li>
               <li><strong>Excluded:</strong> Custom presets, custom parameter tuning, extra revision cycles, open-ended support, or unpaid pre-build prototyping.</li>
             </ul>
+          </div>
+          <div>
+            <a class="tier-cta" href="mailto:hello@megem.example?subject=4-Simulator%20Bundle%20(%C2%A39%2C500%20Upfront)">Request £9,500 Bundle Brief</a>
           </div>
         </article>
 
@@ -343,6 +376,9 @@
               <li><strong>Excluded:</strong> Additional revision rounds beyond the 2-round cap, net-new simulator modules, or unpaid spec work.</li>
             </ul>
           </div>
+          <div>
+            <a class="tier-cta" href="mailto:hello@megem.example?subject=Custom%20Bespoke%20Build%20(%C2%A315%2C000%20Upfront)">Request £15,000 Bespoke Brief</a>
+          </div>
         </article>
       </div>
 
@@ -354,7 +390,7 @@
     <section class="card" aria-labelledby="alignment-heading">
       <h2 id="alignment-heading">Baseline Alignment &amp; Source-of-Truth Lock</h2>
       <ul class="align-list">
-        <li><strong>Active Page 1 (GDRV-P1 V2):</strong> Confirms <code>lottery_ticket_simulator.html</code> under <strong>Track C (Mechanics, Signals &amp; Systems Logic)</strong> alongside sparse subnetwork and grid control dynamics, keeping the vehicle/mechanical lane cleanly separated.</li>
+        <li><strong>Active Page 1 (GDRV-P1 V2):</strong> Confirms Track C simulator modules under <strong>Track C (Mechanics, Signals &amp; Systems Logic)</strong> alongside sparse subnetwork and grid control dynamics, keeping the vehicle/mechanical lane cleanly separated.</li>
         <li><strong>Active Page 2 (GDRV-P2A / GDRV-P2B V3):</strong> Confirms the learner-facing <em>Lottery Ticket &amp; Sparse Grid Strategy Simulator</em> showcase card with controls, visible readouts, trade-offs, and fixed tiers without exposing internal code structure or private math notes.</li>
         <li><strong>Superseded Drafts:</strong> Earlier unmerged or draft portfolio variants remain marked <strong>Superseded</strong> and untouched so <strong>V2/V3</strong> stays the single source of truth.</li>
         <li><strong>Video Demo Clip Status:</strong> Screen-capture, EasyCut, and <code>@Mark-d3y6w</code> demo clip production remains <strong>on hold</strong> until this core text and packaging checklist is locked.</li>
@@ -425,8 +461,8 @@
       {
         id: "3",
         category: "Track C Flagships",
-        label: "Verify swing_equation_simulator.html & lottery_ticket_simulator.html run cleanly with zero console or layout errors",
-        note: "Pending standalone HTML files: neither swing_equation_simulator.html nor lottery_ticket_simulator.html located outside ~/megem_tree/."
+        label: "Verify ev-charging-sim.html, four-seater-sim.html, room_mode_explorer.html & vector_simulator.html run cleanly with zero console or layout errors",
+        note: "Present in ~/portfolio-site/: ev-charging-sim.html, four-seater-sim.html, room_mode_explorer.html, and vector_simulator.html."
       },
       {
         id: "4",
